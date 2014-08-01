@@ -1,6 +1,6 @@
 // Package rapportive is a client for the undocumented Rapportive API.
 // Inspired by:  https://github.com/jordan-wright/rapportive
-package main
+package rapportive
 
 import (
 	"github.com/jmcvetta/napping"
@@ -51,7 +51,7 @@ type Membership struct {
 }
 
 
-func login(email string) (sessionToken string, err error){
+func Login(email string) (sessionToken string, err error){
 	p := napping.Params{
 		"user_email": email,
 	}
@@ -72,31 +72,40 @@ func login(email string) (sessionToken string, err error){
 
 }
 
-func main() {
-	log.SetFlags(log.Ltime | log.Lshortfile)
-	email := "jason.mcvetta@gmail.com"
-	token, err := login(email)
-	if err != nil {
-		log.Fatalln(err)
-	}
+//func main() {
+//	log.SetFlags(log.Ltime | log.Lshortfile)
+//	email := "jason.mcvetta@gmail.com"
+//	token, err := Login(email)
+//	if err != nil {
+//		log.Fatalln(err)
+//	}
+//	c, err := QueryContacts(token, email)
+//	if err != nil {
+//		log.Fatalln(err)
+//	}
+//	logPretty(c)
+//}
+
+func QueryContacts(sessionToken, email string) (*Contact, error) {
 	h := http.Header{}
-	h.Add("X-Session-Token", token)
+	h.Add("X-Session-Token", sessionToken)
 	s := napping.Session{
 		Header: &h,
-		Log: true,
 	}
 	url := fmt.Sprintf(contactsUrl, email)
 	result := ContactsResult{}
 	resp, err := s.Get(url, nil, &result, nil)
 	if err != nil {
-		log.Fatalln(err)
+		log.Println(err)
+		return nil, err
 	}
-	log.Println(resp.Status())
-	c := result.Contact
-	logPretty(c.Name)
-	logPretty(c.Occupations)
-	logPretty(c.Memberships)
-
+	if resp.Status() != 200 {
+		msg := fmt.Sprintf("Bad response status: %v", resp.Status())
+		err = errors.New(msg)
+		log.Println(err)
+		return nil, err
+	}
+	return &result.Contact, nil
 }
 
 
