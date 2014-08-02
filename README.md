@@ -3,7 +3,8 @@
 Package `rapportive` is a [Go][] client library for interacting with
 [Rapportive][]'s undocumented API.  
 
-This package is stictly experimental and NOT supported in any meaninful way.
+This package is stictly experimental, has no tests, and is NOT supported in any
+meaningful way.  Use at your own risk.
 
 
 ## Documentation
