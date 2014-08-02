@@ -1,4 +1,4 @@
-# rapportive: Golang client for Rapportive API
+# Golang client for Rapportive API
 
 Package `rapportive` is a [Go][] client library for interacting with
 [Rapportive][]'s undocumented API.  
