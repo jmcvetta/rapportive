@@ -21,6 +21,9 @@ const (
 )
 
 // A RateLimitError is returned when Rapportive returns HTTP 429.
+var NothingUseful = errors.New("Nothing useful found")
+
+// A RateLimitError is returned when Rapportive returns HTTP 429.
 var RateLimitError = errors.New("Rate Limit Error")
 
 type loginResult struct {
@@ -31,6 +34,7 @@ type loginResult struct {
 type contactsResult struct {
 	Name    string
 	Contact Contact
+	Success string
 }
 
 // A Contact contains contact and occupational information about a person.
@@ -98,6 +102,7 @@ func getContact(sessionToken, email string) (*Contact, error) {
 	h.Add("X-Session-Token", sessionToken)
 	s := napping.Session{
 		Header: &h,
+		Log:    true,
 	}
 	url := fmt.Sprintf(contactsUrl, email)
 	result := contactsResult{}
@@ -115,6 +120,9 @@ func getContact(sessionToken, email string) (*Contact, error) {
 		err = errors.New(msg)
 		log.Println(err)
 		return nil, err
+	}
+	if result.Success == "nothing_useful" {
+		return nil, nil // TODO: return NothingUseful and handle in app
 	}
 	return &result.Contact, nil
 }
