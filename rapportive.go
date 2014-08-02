@@ -11,17 +11,17 @@ import (
 	"errors"
 	"fmt"
 	"github.com/jmcvetta/napping"
-	"github.com/kr/pretty"
 	"log"
 	"net/http"
-	"runtime"
-	"strconv"
 )
 
 const (
 	statusUrl   = "https://rapportive.com/login_status?user_email=%s"
 	contactsUrl = "https://profiles.rapportive.com/contacts/email/%s"
 )
+
+// A RateLimitError is returned when Rapportive returns HTTP 429.
+var RateLimitError = errors.New("Rate Limit Error")
 
 type loginResult struct {
 	Error string
@@ -33,6 +33,7 @@ type contactsResult struct {
 	Contact Contact
 }
 
+// A Contact contains contact and occupational information about a person.
 type Contact struct {
 	Name        string
 	Email       string
@@ -43,11 +44,13 @@ type Contact struct {
 	Memberships []*Membership
 }
 
+// An Occupation describes where a person works and what they do.
 type Occupation struct {
 	JobTitle string `json:"job_title"`
 	Company  string
 }
 
+// A Membership describes a person's membership in a website or social network.
 type Membership struct {
 	Site       string `json:"site_name"`
 	Username   string
@@ -75,6 +78,8 @@ func login(email string) (sessionToken string, err error) {
 
 }
 
+// Query queries the Rapportive API for information about a person, identified
+// by their email address.
 func Query(email string) (c *Contact, err error) {
 	// log.SetFlags(log.Ltime | log.Lshortfile)
 	token, err := login(email)
@@ -85,11 +90,8 @@ func Query(email string) (c *Contact, err error) {
 	if err != nil {
 		return
 	}
-	logPretty(c)
 	return
 }
-
-var RateLimitError = errors.New("Rate Limit Error")
 
 func getContact(sessionToken, email string) (*Contact, error) {
 	h := http.Header{}
@@ -115,11 +117,4 @@ func getContact(sessionToken, email string) (*Contact, error) {
 		return nil, err
 	}
 	return &result.Contact, nil
-}
-
-func logPretty(x interface{}) {
-	_, file, line, _ := runtime.Caller(1)
-	lineNo := strconv.Itoa(line)
-	s := file + ":" + lineNo + ": %# v\n"
-	pretty.Logf(s, x)
 }
