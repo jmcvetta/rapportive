@@ -19,12 +19,12 @@ const (
 
 )
 
-type LoginResult struct {
+type loginResult struct {
 	Error string
 	Token string `json:"session_token"`
 }
 
-type ContactsResult struct {
+type contactsResult struct {
 	Name string
 	Contact Contact
 }
@@ -51,11 +51,11 @@ type Membership struct {
 }
 
 
-func Login(email string) (sessionToken string, err error){
+func login(email string) (sessionToken string, err error){
 	p := napping.Params{
 		"user_email": email,
 	}
-	result := LoginResult{}
+	result := loginResult{}
 	resp, err := napping.Get(statusUrl, &p, &result, nil)
 	if err != nil {
 		log.Println(err)
@@ -72,28 +72,28 @@ func Login(email string) (sessionToken string, err error){
 
 }
 
-//func main() {
-//	log.SetFlags(log.Ltime | log.Lshortfile)
-//	email := "jason.mcvetta@gmail.com"
-//	token, err := Login(email)
-//	if err != nil {
-//		log.Fatalln(err)
-//	}
-//	c, err := QueryContacts(token, email)
-//	if err != nil {
-//		log.Fatalln(err)
-//	}
-//	logPretty(c)
-//}
+func Query(email string) (c *Contact, err error) {
+	// log.SetFlags(log.Ltime | log.Lshortfile)
+	token, err := login(email)
+	if err != nil {
+		return
+	}
+	c, err = getContact(token, email)
+	if err != nil {
+		return
+	}
+	logPretty(c)
+	return
+}
 
-func QueryContacts(sessionToken, email string) (*Contact, error) {
+func getContact(sessionToken, email string) (*Contact, error) {
 	h := http.Header{}
 	h.Add("X-Session-Token", sessionToken)
 	s := napping.Session{
 		Header: &h,
 	}
 	url := fmt.Sprintf(contactsUrl, email)
-	result := ContactsResult{}
+	result := contactsResult{}
 	resp, err := s.Get(url, nil, &result, nil)
 	if err != nil {
 		log.Println(err)
